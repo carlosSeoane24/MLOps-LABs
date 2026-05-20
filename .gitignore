@@ -3,3 +3,5 @@ __pycache__/
 .env
 .vscode/
 git_pass.txt
+LAB-4/
+mlruns/
