@@ -1,0 +1,23 @@
+artifact_path: /home/i82sefec/Escritorio/Loyola/MLOps_LABs/LAB-4/mlruns/2/models/m-e222344fc6c345fa8868f51f2767eed9/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.3
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+mlflow_version: 3.12.0
+model_id: m-e222344fc6c345fa8868f51f2767eed9
+model_size_bytes: 701518
+model_uuid: m-e222344fc6c345fa8868f51f2767eed9
+prompts: null
+run_id: b2b3f2ec29434b81950b67adc6515084
+utc_time_created: '2026-05-20 18:47:48.285984'
