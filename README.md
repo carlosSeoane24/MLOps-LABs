@@ -1,29 +1,17 @@
-# MLOps-LABs
+# 🚀 Portafolio de MLOps & AI BI - Loyola
 
-# 🚀 LAB 6: Capstone Project - Docker Containerized MLOps Architecture
+Este repositorio documenta el desarrollo de un pipeline completo de Machine Learning, desde el análisis de datos hasta el despliegue containerizado.
 
-[![Docker](https://img.shields.io/badge/Container-Docker-blue)](https://www.docker.com/)
-[![FastAPI](https://img.shields.io/badge/API-FastAPI-green)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/UI-Streamlit-red)](https://streamlit.io/)
-[![HuggingFace](https://img.shields.io/badge/Model-HuggingFace-yellow)](https://huggingface.co/)
+## 📁 Estructura del Proyecto
 
-Este proyecto representa el **Capstone Project** de la asignatura de MLOps. El objetivo ha sido empaquetar toda la solución de inferencia (modelo + API + interfaz) en un entorno aislado, reproducible y escalable utilizando **Docker Compose**.
+- **LAB 2 (Predicción de Fallos):** Proyecto de clasificación binaria para la identificación de fallos en productos.
+- **LAB 3 (app-iris-ct):** Desarrollo de la API de inferencia utilizando FastAPI para el clasificador de flores Iris.
+- **LAB 4 (MLflow/Tracking):** Implementación de seguimiento de experimentos y versionado de modelos.
+- **LAB 5 (Hugging Face Hub):** Integración con el ecosistema de Hugging Face para el almacenamiento y recuperación remota de modelos.
+- **LAB 6 (Capstone Project):** Contenerización de la solución completa (Backend FastAPI + Frontend Streamlit) usando Docker Compose.
 
-## 🏗️ Arquitectura del Sistema
+## 🛠️ Flujo de Trabajo y Despliegue
+Todo el desarrollo ha sido gestionado mediante control de versiones con Git, utilizando ramas específicas por laboratorio y consolidando el resultado final en la rama `main`.
 
-La solución se ha desplegado bajo un enfoque de **microservicios**, separando la lógica de negocio (Backend) de la capa de presentación (Frontend):
-
-
-
-### Componentes:
-1.  **Backend (FastAPI):** Servicio de inferencia que descarga dinámicamente el modelo desde Hugging Face Hub al iniciar. Implementa un `HEALTHCHECK` que asegura que el modelo esté cargado antes de que el frontend intente comunicarse con él.
-2.  **Frontend (Streamlit):** Interfaz web que permite al usuario interactuar con el modelo. Se comunica con el backend a través de la red privada de Docker, garantizando seguridad y baja latencia.
-3.  **Orquestación:** Configurado mediante `docker-compose.yml`, gestionando la creación de redes internas, el mapeo de puertos y la inyección segura de variables de entorno (tokens).
-
-## 🚀 Guía de Despliegue Rápido
-
-Para desplegar esta arquitectura en cualquier entorno, asegúrate de tener Docker instalado y sigue estos pasos:
-
-1. **Configurar el Token de Hugging Face:**
-   ```bash
-   export HF_TOKEN="tu_token_aqui"
+---
+*Desarrollado para la asignatura de MLOps
