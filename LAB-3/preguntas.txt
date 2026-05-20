@@ -1,0 +1,63 @@
+Pregunta 1: Reproducibilidad del modelo Bootstrap
+
+Respuesta:
+Sí, si detienes el servidor, borras la carpeta models/ y lo vuelves a arrancar, obtendrías exactamente el mismo modelo con exactamente el mismo accuracy.
+
+Razonamiento:
+Los algoritmos de Machine Learning (como la Regresión Logística) y las funciones de partición de datos tienen componentes estocásticos (aleatorios). Por ejemplo, al dividir el dataset en entrenamiento y prueba, los datos se barajan. Si esta aleatoriedad no se controla, cada vez que ejecutes el código obtendrás una partición distinta y, por tanto, un modelo ligeramente diferente.
+
+Sin embargo, en MLOps la reproducibilidad es un pilar fundamental. Esto se garantiza fijando la "semilla aleatoria" (random seed).
+La línea y parámetro exactos que garantizan esto en el código son el random_state=42. En el código de main.py este parámetro se aplica en dos lugares críticos:
+
+    En la partición de los datos: train_test_split(..., random_state=42)
+
+    En la inicialización del modelo: LogisticRegression(..., random_state=42)
+
+Al usar la misma semilla, el generador de números pseudoaleatorios tomará siempre las mismas decisiones, garantizando que el modelo base generado por el bootstrap sea 100% determinista e idéntico en cada arranque.
+Pregunta 2: Entrenamiento con 10 muestras de clase Setosa
+
+Respuesta:
+Si enviaras 10 muestras perfectamente etiquetadas pero todas de la misma clase (setosa), el modelo ni se entrenaría ni se activaría.
+
+Descripción paso a paso de lo que devolvería la API:
+
+    La API recibe el request en el endpoint /train y extrae las 10 muestras.
+
+    Al concatenarlas (o usarlas desde cero) evalúa cuántas clases únicas hay en el vector objetivo (y_train).
+
+    El código detecta que len(np.unique(y_train)) < 2 (solo hay 1 clase: setosa).
+
+    El proceso de entrenamiento se aborta inmediatamente antes de instanciar el modelo.
+
+    La API devuelve un error HTTP 422 (Unprocessable Entity) con el mensaje definido en el código: "El dataset de entrenamiento debe contener al menos 2 clases distintas."
+
+Por qué tiene sentido esta restricción:
+Los algoritmos de clasificación supervisada (como la Regresión Logística) funcionan calculando matemáticamente una "frontera de decisión" que separa una clase de otra. Si le proporcionas datos de una sola clase, es matemáticamente imposible trazar una frontera (no hay nada de lo que separarse). Si el sistema permitiera esto, el modelo sufriría un "olvido catastrófico" (catastrophic forgetting), prediciendo "setosa" para absolutamente cualquier flor en el futuro, destruyendo el modelo válido que teníamos en producción.
+Pregunta 3: Registro de modelos rechazados en el historial
+
+Respuesta:
+Diseñar el sistema para que registre los modelos rechazados (como el entrenado con muestras ruidosas) es una de las mejores prácticas en MLOps porque proporciona auditabilidad, monitorización y capacidad de diagnóstico. Si solo guardáramos los éxitos, sufriríamos de "sesgo de supervivencia" y perderíamos visibilidad sobre la salud del flujo de datos en producción.
+
+Información útil que proporciona este registro:
+
+    Detección de Data Drift y Anomalías: Si de repente empiezas a ver en el historial que muchos modelos consecutivos son rechazados, es una señal de alarma clara. Indica que los nuevos datos que están llegando desde producción son ruidosos, están mal etiquetados, o que el comportamiento de los usuarios ha cambiado radicalmente (Data Drift).
+
+    Trazabilidad de ataques o errores: Si se detecta un comportamiento anómalo, el historial permite auditar exactamente cuándo el sistema intentó aprender patrones incorrectos (por ejemplo, en un ataque de envenenamiento de datos o un sensor de hardware roto).
+
+    Ajuste de hiperparámetros de las políticas: Guardar el accuracy de los modelos rechazados ayuda a los ingenieros de Machine Learning a afinar los Quality Gates. Te permite ver si tu umbral de aceptación es demasiado estricto (rechazando modelos que quizás eran buenos) o demasiado laxo.
+
+Pregunta 4: Reflexión sobre el Quality Gate (>= vs >)
+
+Respuesta:
+El uso del operador >= (mayor o igual) en lugar del > (estricto) es una decisión de diseño intencionada y, en la mayoría de escenarios donde el dataset de entrenamiento crece progresivamente, es la elección correcta.
+
+Argumentación:
+A medida que el sistema funciona en producción y acumula cientos o miles de muestras nuevas de buena calidad, el accuracy del modelo tiende a estabilizarse y acercarse a su techo máximo (lo que se conoce como plateau). Ningún modelo es perfecto (existe el límite del ruido inherente de los datos o error de Bayes), por lo que llegará un punto en el que el accuracy dejará de subir numéricamente, manteniéndose por ejemplo en un constante 0.96.
+
+Si usáramos un operador > estricto, el sistema se paralizaría al llegar a ese techo. Ignoraría todos los datos nuevos a partir de ese momento porque no logran subir la métrica al 0.97.
+
+¿Qué significa que dos versiones tengan el mismo accuracy con datasets de distinto tamaño?
+Un modelo con 96% de accuracy entrenado con 150 muestras no es igual de bueno que un modelo con 96% de accuracy entrenado con 10.000 muestras. El segundo modelo (el nuevo) es estadísticamente mucho más robusto, generalizará mejor ante casos raros, tendrá menos varianza y sus fronteras de decisión serán más sólidas. La métrica global del accuracy es un resumen estadístico y a veces no captura estas sutilezas (mejoras en la calibración de probabilidades, o mejoras en clases minoritarias).
+
+Consecuencias:
+Por tanto, si usáramos > estricto, impediríamos que el modelo se volviera más robusto con el tiempo. El operador >= permite que el sistema asimile y consolide el conocimiento de las nuevas muestras, reemplazando el modelo por una versión "estadísticamente más madura", aunque la nota del examen (el accuracy) siga siendo la misma. (Nota: En sistemas muy avanzados, esto se soluciona usando políticas adicionales como min_delta combinadas con el coste de despliegue, tal y como se exploró en la extensión de la práctica).
